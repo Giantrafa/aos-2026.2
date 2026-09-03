@@ -1,18 +1,38 @@
 import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
+import models from "./models/index.js";
+import routes from './routes/index.js';
 
 const app = express();
 
+app.set('trust proxy', true); 
+
+// middlewares
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+// middleware the logs
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - ${req.ip}`);
+  next();
+});
+// middleware de autenticação "fake" + injeção dos models no req.context
+app.use((req, res, next) => {
+  req.context = {
+    models,
+    me: models.users[1],
+  };
+  next();
+});
 
+// rotas
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  return res.send('Servidor express exectuando...');
 });
-
-app.get('/hello', (req, res) => {
-  res.send('Olá, Turma!');
-});
+app.use('/session', routes.session);
+app.use('/users', routes.user);
+app.use('/messages', routes.message);
 
 const port = process.env.PORT || 3000;
 

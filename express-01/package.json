@@ -16,7 +16,7 @@
   ],
   "author": "Rafael Assis",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
     "@babel/node": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
