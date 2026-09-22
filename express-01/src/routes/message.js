@@ -1,34 +1,19 @@
 import { Router } from "express";
+import {
+  getMessages,
+  getMessage,
+  createMessage,
+  deleteMessage,
+} from "../controllers/message.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
-  const messages = await req.context.models.Message.findAll();
-  return res.send(messages);
-});
+router.get("/", getMessages);
 
-router.get("/:messageId", async (req, res) => {
-  const message = await req.context.models.Message.findByPk(
-    req.params.messageId,
-  );
-  return res.send(message);
-});
+router.get("/:messageId", getMessage);
 
-router.post("/", async (req, res) => {
-  const message = await req.context.models.Message.create({
-    text: req.body.text,
-    userId: req.context.me.id,
-  });
+router.post("/", createMessage);
 
-  return res.send(message);
-});
-
-router.delete("/:messageId", async (req, res) => {
-  const result = await req.context.models.Message.destroy({
-    where: { id: req.params.messageId },
-  });
-
-  return res.send(true);
-});
+router.delete("/:messageId", deleteMessage);
 
 export default router;
