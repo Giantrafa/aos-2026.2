@@ -35,7 +35,7 @@ const eraseDatabaseOnSync =
 
 sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
   if (eraseDatabaseOnSync) {
-    createUsersWithMessages();
+    await createUsersWithMessages();
   }
 
   app.listen(port, () =>
