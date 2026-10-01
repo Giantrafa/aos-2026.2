@@ -1,24 +1,12 @@
 import { Router } from "express";
-
-import {
-  getMessages,
-  getMessage,
-  createMessage,
-  deleteMessage,
-} from "../controllers/message.js";
-
-import mensageController from "../controllers/mensageController.js";
+import { messageController } from "../controllers/index.js";
 
 const router = Router();
 
-router.get("/", getMessages);
-
-router.get("/:messageId", getMessage);
-
-router.post("/", createMessage);
-
-router.delete("/:messageId", deleteMessage);
-
-router.put("/:messageId", mensageController.updatemenssage);
+router.get("/", messageController.getMessages);
+router.get("/:messageId", messageController.getMessage);
+router.post("/", messageController.createMessage);
+router.put("/:messageId", messageController.updateMessage);
+router.delete("/:messageId", messageController.deleteMessage);
 
 export default router;

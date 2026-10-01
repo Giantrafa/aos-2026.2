@@ -1,35 +1,47 @@
-const { User } = require("../models");
+import models from "../models/index.js";
 
-async function createUser(userData) {
-  return await User.create(userData);
-}
+const getAllUsers = async () => {
+  return await models.User.findAll();
+};
 
-async function updateUser(id, userData) {
-  const user = await User.findByPk(id);
+const getUserById = async (id) => {
+  return await models.User.findByPk(id);
+};
 
+const getUserByLogin = async (login) => {
+  return await models.User.findByLogin(login);
+};
+
+const createUser = async ({ username, email }) => {
+  return await models.User.create({
+    username,
+    email,
+  });
+};
+
+const updateUser = async (id, { username, email }) => {
+  const user = await getUserById(id);
   if (!user) {
     return null;
   }
+  return await user.update({
+    ...(username !== undefined && { username }),
+    ...(email !== undefined && { email }),
+  });
+};
 
-  await user.update(userData);
+const deleteUser = async (id) => {
+  const count = await models.User.destroy({
+    where: { id },
+  });
+  return count > 0;
+};
 
-  return user;
-}
-
-async function deleteUser(id) {
-  const user = await User.findByPk(id);
-
-  if (!user) {
-    return null;
-  }
-
-  await user.destroy();
-
-  return user;
-}
-
-module.exports = {
+export default {
+  getAllUsers,
+  getUserById,
+  getUserByLogin,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
 };

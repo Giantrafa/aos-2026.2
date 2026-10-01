@@ -1,19 +1,41 @@
 import models from "../models/index.js";
 
-const { Message } = models;
+const getAllMessages = async () => {
+  return await models.Message.findAll();
+};
 
-async function updateMessage(id, data) {
-  const message = await Message.findByPk(id);
+const getMessageById = async (id) => {
+  return await models.Message.findByPk(id);
+};
 
+const createMessage = async ({ text, userId }) => {
+  return await models.Message.create({
+    text,
+    userId,
+  });
+};
+
+const updateMessage = async (id, { text }) => {
+  const message = await getMessageById(id);
   if (!message) {
     return null;
   }
+  return await message.update({
+    ...(text !== undefined && { text }),
+  });
+};
 
-  await message.update(data);
-
-  return message;
-}
+const deleteMessage = async (id) => {
+  const count = await models.Message.destroy({
+    where: { id },
+  });
+  return count > 0;
+};
 
 export default {
+  getAllMessages,
+  getMessageById,
+  createMessage,
   updateMessage,
+  deleteMessage,
 };

@@ -1,79 +1,47 @@
-import "dotenv/config";
-import cors from "cors";
-import express from "express";
-import models, { sequelize } from "./models/index.js";
-import routes from "./routes/index.js";
-import context from "./middlewares/context.js";
+import models from "../models/index.js";
 
-const app = express();
+const getAllUsers = async () => {
+  return await models.User.findAll();
+};
 
-app.set("trust proxy", true);
+const getUserById = async (id) => {
+  return await models.User.findByPk(id);
+};
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const getUserByLogin = async (login) => {
+  return await models.User.findByLogin(login);
+};
 
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - ${req.ip}`);
-  next();
-});
+const createUser = async ({ username, email }) => {
+  return await models.User.create({
+    username,
+    email,
+  });
+};
 
-app.use(context);
-
-app.get("/", (req, res) => {
-  return res.send("Servidor express executando...");
-});
-
-app.use("/session", routes.session);
-app.use("/users", routes.user);
-app.use("/messages", routes.message);
-
-const port = process.env.PORT || 3000;
-
-const eraseDatabaseOnSync =
-  process.env.ERASE_DATABASE_ON_SYNC === "true";
-
-sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
-  if (eraseDatabaseOnSync) {
-    await createUsersWithMessages();
+const updateUser = async (id, { username, email }) => {
+  const user = await getUserById(id);
+  if (!user) {
+    return null;
   }
+  return await user.update({
+    ...(username !== undefined && { username }),
+    ...(email !== undefined && { email }),
+  });
+};
 
-  app.listen(port, () =>
-    console.log(`Example app listening on port ${port}!`),
-  );
-});
+const deleteUser = async (id) => {
+  const count = await models.User.destroy({
+    where: { id },
+  });
+  return count > 0;
+};
 
-const createUsersWithMessages = async () => {
-  await models.User.create(
-    {
-      username: "rwieruch",
-      email: "rwieruch@email.com",
-      messages: [
-        {
-          text: "Published the Road to learn React",
-        },
-      ],
-    },
-    {
-      include: [models.Message],
-    },
-  );
-
-  await models.User.create(
-    {
-      username: "ddavids",
-      email: "ddavids@email.com",
-      messages: [
-        {
-          text: "Happy to release ...",
-        },
-        {
-          text: "Published a complete ...",
-        },
-      ],
-    },
-    {
-      include: [models.Message],
-    },
-  );
+export default {
+  getAllUsers,
+  getUserById,
+  getUserByLogin,
+  createUser,
+  updateUser,
+  deleteUser,
 };

@@ -1,10 +1,10 @@
-import models from "../models/index.js";
+import { userService } from "../services/index.js";
 
-export default async (req, res, next) => {
+const contextMiddleware = async (req, res, next) => {
   req.context = {
-    models,
-    me: await models.User.findByLogin("rwieruch"),
+    me: await userService.getUserByLogin("rwieruch"),
   };
-
   next();
 };
+
+export default contextMiddleware;
