@@ -1,13 +1,16 @@
 import { userService } from "../services/index.js";
+import { NotFoundError } from "../utils/appError.js";
 
 const getSession = async (req, res) => {
-  const user = req.context?.me?.id
+  const user = req.context.me
     ? await userService.getUserById(req.context.me.id)
     : null;
+
   if (!user) {
-    return res.status(404).send();
+    throw new NotFoundError("Sessão não encontrada");
   }
-  return res.status(200).send(user);
+
+  return res.status(200).json(user);
 };
 
 export default {

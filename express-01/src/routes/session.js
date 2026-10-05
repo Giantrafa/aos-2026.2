@@ -3,6 +3,6 @@ import { sessionController } from "../controllers/index.js";
 
 const router = Router();
 
-router.get("/", getSession);
+router.get("/", sessionController.getSession);
 
 export default router;

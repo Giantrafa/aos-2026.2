@@ -1,85 +1,52 @@
-import userService from "../services/userService.js";
+import { userService } from "../services/index.js";
+import { NotFoundError } from "../utils/appError.js";
 
-export const createUser = async (req, res) => {
-  try {
-    const user = await userService.createUser(req.body);
+const getUsers = async (req, res) => {
+  const users = await userService.getAllUsers();
 
-    return res.status(201).json(user);
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
-  }
+  return res.status(200).json(users);
 };
 
-export const getUsers = async (req, res) => {
-  try {
-    const users = await req.context.models.User.findAll();
+const getUser = async (req, res) => {
+  const user = await userService.getUserById(req.params.userId);
 
-    return res.status(200).json(users);
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
+  if (!user) {
+    throw new NotFoundError("Usuário não encontrado");
   }
+
+  return res.status(200).json(user);
 };
 
-export const getUser = async (req, res) => {
-  try {
-    const user = await req.context.models.User.findByPk(
-      req.params.userId
-    );
+const createUser = async (req, res) => {
+  const user = await userService.createUser(req.body);
 
-    if (!user) {
-      return res.status(404).json({
-        message: "Usuário não encontrado",
-      });
-    }
-
-    return res.status(200).json(user);
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
-  }
+  return res.status(201).json(user);
 };
 
-export const updateUser = async (req, res) => {
-  try {
-    const { id } = req.params;
+const updateUser = async (req, res) => {
+  const user = await userService.updateUser(req.params.userId, req.body);
 
-    const user = await userService.updateUser(id, req.body);
-
-    if (!user) {
-      return res.status(404).json({
-        message: "Usuário não encontrado",
-      });
-    }
-
-    return res.status(200).json(user);
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
+  if (!user) {
+    throw new NotFoundError("Usuário não encontrado");
   }
+
+  return res.status(200).json(user);
 };
 
-export const deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
+const deleteUser = async (req, res) => {
+  const deleted = await userService.deleteUser(req.params.userId);
 
-    const user = await userService.deleteUser(id);
-
-    if (!user) {
-      return res.status(404).json({
-        message: "Usuário não encontrado",
-      });
-    }
-
-    return res.status(204).send();
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
+  if (!deleted) {
+    throw new NotFoundError("Usuário não encontrado");
   }
+
+  return res.status(204).send();
+};
+
+export default {
+  getUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
 };
