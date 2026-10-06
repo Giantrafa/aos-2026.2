@@ -1,18 +1,26 @@
 import "dotenv/config";
 import express from "express";
 import models, { sequelize } from "./models/index.js";
-import routes from "./routes/index.js";
-import { cors, log, context, errorHandler } from "./middlewares/index.js";
+import {
+  corsMiddleware,
+  logMiddleware,
+  contextMiddleware,
+  notFoundMiddleware,
+  errorMiddleware,
+} from "./middlewares/index.js";
+import * as routes from "./routes/index.js";
 
 const app = express();
 
 app.set("trust proxy", true);
 
-app.use(cors);
+
+app.use(corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(log);
-app.use(context);
+app.use(logMiddleware);
+app.use(contextMiddleware);
+
 
 app.get("/", (req, res) => {
   return res.send("Servidor express executando...");
@@ -22,11 +30,32 @@ app.use("/session", routes.session);
 app.use("/users", routes.user);
 app.use("/messages", routes.message);
 
-app.use(errorHandler);
+// rota não encontrada (404)
+app.use(notFoundMiddleware);
+
+// middleware global de erro
+app.use(errorMiddleware);
 
 const port = process.env.PORT || 3000;
 
 const eraseDatabaseOnSync = process.env.ERASE_DATABASE_ON_SYNC === "true";
+const syncDatabase =
+  process.env.SYNC_DATABASE === "true" || eraseDatabaseOnSync;
+
+const startServer = () => {
+  app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+};
+
+if (syncDatabase) {
+  sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
+    if (eraseDatabaseOnSync) {
+      await createUsersWithMessages();
+    }
+    startServer();
+  });
+} else {
+  startServer();
+}
 
 const createUsersWithMessages = async () => {
   await models.User.create(
@@ -62,15 +91,5 @@ const createUsersWithMessages = async () => {
     },
   );
 };
-
-sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
-  if (eraseDatabaseOnSync) {
-    await createUsersWithMessages();
-  }
-
-  app.listen(port, () =>
-    console.log(`Example app listening on port ${port}!`),
-  );
-});
 
 export default app;
