@@ -2,7 +2,9 @@ import "dotenv/config";
 import express from "express";
 import models, { sequelize } from "./models/index.js";
 import {
+  helmetMiddleware,
   corsMiddleware,
+  limiter,
   logMiddleware,
   contextMiddleware,
   notFoundMiddleware,
@@ -12,28 +14,27 @@ import * as routes from "./routes/index.js";
 
 const app = express();
 
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
-
+app.use(helmetMiddleware);
 app.use(corsMiddleware);
-app.use(express.json());
+app.use(limiter);
+app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(logMiddleware);
 app.use(contextMiddleware);
-
 
 app.get("/", (req, res) => {
   return res.send("Servidor express executando...");
 });
 
+app.use("/auth", routes.auth);
 app.use("/session", routes.session);
 app.use("/users", routes.user);
 app.use("/messages", routes.message);
 
-// rota não encontrada (404)
 app.use(notFoundMiddleware);
 
-// middleware global de erro
 app.use(errorMiddleware);
 
 const port = process.env.PORT || 3000;
@@ -47,11 +48,16 @@ const startServer = () => {
 };
 
 if (syncDatabase) {
-  sequelize.sync({ force: eraseDatabaseOnSync }).then(async () => {
+  sequelize.sync({ force: eraseDatabaseOnSync, alter: !eraseDatabaseOnSync }).then(async () => {
     if (eraseDatabaseOnSync) {
       await createUsersWithMessages();
     }
     startServer();
+  }).catch((error) => {
+    console.error("Erro ao sincronizar o banco de dados:", error.message);  
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   });
 } else {
   startServer();

@@ -45,6 +45,18 @@ const errorMiddleware = (err, req, res, next) => {
     });
   }
 
+  if (err.status >= 400 && err.status < 500) {
+    const messages = {
+      "entity.parse.failed": "O corpo da requisição não é um JSON válido.",
+      "entity.too.large": "O corpo da requisição é grande demais.",
+    };
+    return res.status(err.status).send({
+      status: "fail",
+      message: messages[err.type] || err.message,
+      ...(isDev && { stack: err.stack }),
+    });
+  }
+
   return res.status(500).send({
     status: "error",
     message: isDev ? err.message : "Algo deu errado no servidor.",
