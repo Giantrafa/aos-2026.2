@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { env } from "./utils/env.js";
 import express from "express";
 import models, { sequelize } from "./models/index.js";
 import {
@@ -37,7 +38,7 @@ app.use(notFoundMiddleware);
 
 app.use(errorMiddleware);
 
-const port = process.env.PORT || 3000;
+const port = env.PORT;
 
 const eraseDatabaseOnSync = process.env.ERASE_DATABASE_ON_SYNC === "true";
 const syncDatabase =

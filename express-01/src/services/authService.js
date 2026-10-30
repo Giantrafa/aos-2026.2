@@ -1,26 +1,18 @@
 import jwt from "jsonwebtoken";
 import models from "../models/index.js";
-import { AppError } from "../utils/index.js";
+import { AppError, env } from "../utils/index.js";
 
 const TOKEN_EXPIRES_IN = "7d";
 
-const getSecret = () => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new AppError("JWT_SECRET não configurado no servidor.", 500);
-  }
-  return secret;
-};
-
 const createToken = (user) => {
-  return jwt.sign({ id: user.id }, getSecret(), {
+  return jwt.sign({ id: user.id }, env.JWT_SECRET, {
     expiresIn: TOKEN_EXPIRES_IN,
   });
 };
 
 const verifyToken = (token) => {
   try {
-    return jwt.verify(token, getSecret());
+    return jwt.verify(token, env.JWT_SECRET);
   } catch {
     throw new AppError("Sessão inválida ou expirada.", 401);
   }
